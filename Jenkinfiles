@@ -1,0 +1,57 @@
+pipeline
+{
+    agent any
+
+    stages 
+    {
+        stage('Build') 
+        {
+            steps 
+            {
+                build job: 'su-pipe1'
+            }
+        }
+        stage('Test')
+        {
+            steps
+            {
+                build job: 'su-pipe2'
+            }
+        }
+        stage('slack notifiaction')
+        {
+             steps
+                {
+                   slackSend baseUrl: 'https://upstox-in.slack.com/services/hooks/jenkins-ci/',
+                   channel: 'build', color: 'good', 
+                   message: 
+                   'below link for approve and deny for production stage http://192.168.80.190/job/su-pipeline/', 
+                   tokenCredentialId: 'suhas-build'
+                }
+        }
+        
+        stage('Deploy') 
+        {
+            steps 
+            {
+                
+                
+                input message:'Approve PRODUCTION Deployment?'
+                
+                build job: 'su-pipe3'
+            }
+            post
+            {
+                success 
+                {
+                    echo "code deploy succesfully."
+                }
+                failure
+                {
+                    echo "deploy fail"
+                }
+            }
+        }
+    }
+    
+}
